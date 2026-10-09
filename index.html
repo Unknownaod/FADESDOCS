@@ -1,0 +1,1903 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#07070d">
+<title>Fades Identity Docs</title>
+<meta name="description" content="Developer documentation for Fades Identity: OAuth 2.0 and OpenID Connect API reference, client libraries, examples and error codes.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%238b7cff'/%3E%3Cstop offset='1' stop-color='%235ec8ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='44' font-size='36' font-family='Arial' font-weight='700' text-anchor='middle' fill='white'%3EF%3C/text%3E%3C/svg%3E">
+<style>
+/* =========================================================
+   FADES DOCS — styled after the Fades login page
+   All classes are prefixed fd- so they can't clash with anything.
+   ========================================================= */
+
+:root {
+  --accent: #8b7cff;
+  --accent-strong: #6a5bff;
+  --accent-2: #5ec8ff;
+  --accent-3: #ff7ad9;
+  --ok: #3ddc97;
+  --bad: #ff5c6c;
+  --warn: #ffc16b;
+  --text: #f2f2f8;
+  --muted: #a4a4b8;
+  --faint: #6c6c82;
+  --field: rgba(10, 10, 18, 0.72);
+  --line: rgba(255, 255, 255, 0.1);
+  --mx: 50vw;
+  --my: 30vh;
+}
+
+* , *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #07070d;
+  color: var(--text);
+  font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: var(--accent-2); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+code, pre, kbd { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+::selection { background: rgba(139, 124, 255, 0.45); }
+
+/* =========================================================
+   ANIMATED BACKGROUND
+   ========================================================= */
+
+.fd-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 700px at 50% -10%, #17143a 0%, transparent 60%),
+    linear-gradient(180deg, #0a0a16 0%, #07070d 100%);
+}
+
+.fd-aurora {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 150vmax; height: 150vmax;
+  margin: -75vmax 0 0 -75vmax;
+  background: conic-gradient(from 0deg,
+    rgba(139,124,255,.28), rgba(94,200,255,.1), rgba(255,122,217,.18),
+    rgba(139,124,255,.05), rgba(94,200,255,.22), rgba(139,124,255,.28));
+  filter: blur(90px);
+  opacity: .5;
+  animation: fd-rotate 70s linear infinite;
+}
+
+.fd-orb { position: absolute; border-radius: 50%; filter: blur(90px); will-change: transform; }
+.fd-orb-1 { width: 560px; height: 560px; top: -200px; left: -160px; background: var(--accent); opacity: .34; animation: fd-drift-1 22s ease-in-out infinite; }
+.fd-orb-2 { width: 480px; height: 480px; right: -170px; bottom: -190px; background: var(--accent-2); opacity: .22; animation: fd-drift-2 26s ease-in-out infinite; }
+.fd-orb-3 { width: 360px; height: 360px; top: 52%; left: 62%; background: var(--accent-3); opacity: .12; animation: fd-drift-3 30s ease-in-out infinite; }
+
+.fd-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 78%);
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 78%);
+  animation: fd-grid-pan 40s linear infinite;
+}
+
+.fd-shape { position: absolute; display: block; opacity: .2; animation: fd-float 16s ease-in-out infinite; }
+.fd-shape-ring { border: 2px solid rgba(160,150,255,.7); border-radius: 50%; }
+.fd-shape-square { border: 2px solid rgba(94,200,255,.65); border-radius: 14px; }
+.fd-shape-diamond { border: 2px solid rgba(255,122,217,.55); border-radius: 10px; rotate: 45deg; }
+
+.fd-spot {
+  position: absolute; inset: 0;
+  background: radial-gradient(420px circle at var(--mx) var(--my), rgba(139,124,255,.14), transparent 70%);
+}
+
+.fd-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(3,3,8,.7) 100%);
+}
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
+
+.fd-shell { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+.fd-side {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  flex: 0 0 300px;
+  height: 100vh;
+  padding: 18px 0 18px 18px;
+}
+
+.fd-side-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(30,30,46,.78), rgba(16,16,26,.86));
+  box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04), inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  overflow: hidden;
+}
+
+.fd-side-card::before, .fd-card::before {
+  content: "";
+  position: absolute; inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(150deg, rgba(139,124,255,.6), rgba(255,255,255,.08) 38%, rgba(255,255,255,.03) 62%, rgba(94,200,255,.45));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.fd-brand {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 20px 14px;
+  color: var(--text);
+  font-size: 17px; font-weight: 700; letter-spacing: -.02em;
+}
+.fd-brand:hover { text-decoration: none; }
+.fd-brand small { display: block; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+
+.fd-logo {
+  display: grid; place-items: center;
+  width: 40px; height: 40px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; font-size: 20px; font-weight: 800;
+  box-shadow: 0 8px 24px rgba(139,124,255,.35);
+}
+
+.fd-search { padding: 0 16px 10px; }
+.fd-search input {
+  width: 100%; height: 42px; padding: 0 14px;
+  border-radius: 13px; background: var(--field); border: 1px solid var(--line);
+  color: inherit; font: inherit; font-size: 14px; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.fd-search input::placeholder { color: var(--faint); }
+.fd-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139,124,255,.18); }
+
+.fd-nav { flex: 1; overflow-y: auto; padding: 4px 12px 16px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent; }
+.fd-nav h4 { margin: 18px 10px 6px; color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.fd-nav a {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; margin: 1px 0;
+  border-radius: 10px;
+  color: var(--muted); font-size: 13.5px; font-weight: 500;
+  transition: color .15s, background .15s;
+}
+.fd-nav a:hover { color: var(--text); background: rgba(255,255,255,.05); text-decoration: none; }
+.fd-nav a.active { color: #fff; font-weight: 600; background: linear-gradient(135deg, rgba(139,124,255,.28), rgba(106,91,255,.14)); box-shadow: inset 0 0 0 1px rgba(139,124,255,.45); }
+.fd-nav a .m { min-width: 38px; font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-align: center; }
+.fd-nav a.hide, .fd-nav h4.hide { display: none; }
+
+.fd-side-foot { padding: 12px 18px 16px; border-top: 1px solid rgba(255,255,255,.06); color: var(--faint); font-size: 12px; }
+
+.fd-main { flex: 1; min-width: 0; padding: 18px 28px 80px; }
+.fd-wrap { max-width: 880px; margin: 0 auto; }
+
+.fd-top {
+  display: none;
+  position: sticky; top: 0; z-index: 30;
+  align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(10,10,18,.8);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.fd-burger { height: 38px; padding: 0 14px; border-radius: 999px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.14); color: inherit; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* =========================================================
+   HERO + CARDS
+   ========================================================= */
+
+.fd-hero { padding: 34px 6px 14px; animation: fd-card-in .7s cubic-bezier(.2,.8,.2,1) both; }
+.fd-hero h1 { margin: 14px 0 0; font-size: clamp(32px, 5vw, 46px); line-height: 1.08; letter-spacing: -.04em; }
+.fd-hero h1 em { font-style: normal; background: linear-gradient(120deg, var(--accent), var(--accent-2) 55%, var(--accent-3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.fd-hero p { max-width: 640px; margin: 14px 0 0; color: var(--muted); font-size: 16.5px; }
+.fd-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+
+.fd-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px; border-radius: 999px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); color: var(--muted); font-size: 12px; font-weight: 600; }
+.fd-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+
+.fd-primary, .fd-ghost {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  height: 46px; padding: 0 26px; border-radius: 999px;
+  font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; overflow: hidden;
+}
+.fd-primary { border: 0; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-strong)); box-shadow: 0 8px 22px rgba(139,124,255,.38), inset 0 1px 0 rgba(255,255,255,.25); transition: filter .15s, transform .15s; }
+.fd-primary::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.28) 50%, transparent 65%); transform: translateX(-120%); transition: transform .7s ease; }
+.fd-primary:hover { filter: brightness(1.08); transform: translateY(-1px); text-decoration: none; }
+.fd-primary:hover::after { transform: translateX(120%); }
+.fd-ghost { color: inherit; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.14); transition: border-color .15s, background .15s; }
+.fd-ghost:hover { border-color: var(--accent); background: rgba(139,124,255,.08); text-decoration: none; }
+
+.fd-card {
+  position: relative;
+  margin: 22px 0;
+  padding: 30px 32px 28px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(30,30,46,.72), rgba(16,16,26,.82));
+  box-shadow: 0 24px 60px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.04), inset 0 1px 0 rgba(255,255,255,.07);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+
+.fd-card h2 { margin: 0 0 6px; font-size: 26px; line-height: 1.2; letter-spacing: -.03em; }
+.fd-card h3 { margin: 28px 0 8px; font-size: 17px; letter-spacing: -.02em; }
+.fd-card h4 { margin: 20px 0 6px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.fd-card p { margin: 10px 0; color: #cfcfe0; }
+.fd-card ul, .fd-card ol { margin: 10px 0; padding-left: 22px; color: #cfcfe0; }
+.fd-card li { margin: 5px 0; }
+.fd-lead { color: var(--muted) !important; font-size: 15.5px; }
+.fd-card strong, .fd-card b { color: var(--text); }
+
+.fd-kicker { display: inline-block; margin-bottom: 10px; color: var(--accent); font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+
+:not(pre) > code {
+  padding: 2px 7px; border-radius: 7px;
+  background: rgba(139,124,255,.12); border: 1px solid rgba(139,124,255,.22);
+  color: #c9c2ff; font-size: .86em; white-space: nowrap;
+}
+
+.fd-grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 16px 0 4px; }
+.fd-mini { padding: 16px 16px 14px; border-radius: 18px; background: rgba(8,8,14,.55); border: 1px solid rgba(255,255,255,.07); transition: border-color .2s, transform .2s; }
+.fd-mini:hover { border-color: rgba(139,124,255,.5); transform: translateY(-2px); }
+.fd-mini b { display: block; margin-bottom: 4px; font-size: 14px; }
+.fd-mini span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.fd-mini .ic { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 10px; border-radius: 11px; background: rgba(139,124,255,.14); box-shadow: inset 0 0 0 1px rgba(139,124,255,.4); font-size: 16px; }
+
+/* steps */
+.fd-steps { list-style: none; counter-reset: s; margin: 16px 0 !important; padding: 0 !important; }
+.fd-steps li { position: relative; counter-increment: s; margin: 0 0 14px; padding: 2px 0 0 46px; min-height: 34px; }
+.fd-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 11px; background: rgba(139,124,255,.16); box-shadow: inset 0 0 0 1px rgba(139,124,255,.45); color: #fff; font-size: 13px; font-weight: 700; }
+
+/* callouts */
+.fd-note, .fd-warn, .fd-danger {
+  margin: 16px 0; padding: 12px 15px; border-radius: 14px;
+  font-size: 13.5px; line-height: 1.55;
+}
+.fd-note { background: rgba(94,200,255,.08); border: 1px solid rgba(94,200,255,.32); color: #8fd8ff; }
+.fd-warn { background: rgba(255,193,107,.08); border: 1px solid rgba(255,193,107,.35); color: #ffd699; }
+.fd-danger { background: rgba(255,92,108,.1); border: 1px solid rgba(255,92,108,.4); color: #ff8f9b; }
+.fd-card .fd-note b, .fd-card .fd-warn b, .fd-card .fd-danger b { color: inherit; }
+.fd-note code, .fd-warn code, .fd-danger code { color: inherit; }
+
+/* tables */
+.fd-table { margin: 14px 0; overflow-x: auto; border-radius: 16px; border: 1px solid rgba(255,255,255,.08); background: rgba(8,8,14,.5); }
+.fd-table table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fd-table th { padding: 10px 14px; text-align: left; color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; background: rgba(255,255,255,.03); white-space: nowrap; }
+.fd-table td { padding: 10px 14px; border-top: 1px solid rgba(255,255,255,.06); vertical-align: top; color: #cfcfe0; }
+.fd-table td:first-child { white-space: nowrap; }
+.fd-req { margin-left: 6px; color: var(--bad); font-size: 11px; font-weight: 700; }
+.fd-opt { margin-left: 6px; color: var(--faint); font-size: 11px; font-weight: 600; }
+
+/* code */
+.fd-codebox { margin: 14px 0; border-radius: 16px; background: rgba(6,6,12,.85); border: 1px solid rgba(255,255,255,.09); overflow: hidden; }
+.fd-codebar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 8px 6px 10px; background: rgba(255,255,255,.035); border-bottom: 1px solid rgba(255,255,255,.07); }
+.fd-tabs { display: flex; gap: 2px; overflow-x: auto; }
+.fd-tabs button, .fd-tabs span { padding: 6px 12px; border: 0; border-radius: 9px; background: none; color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.fd-tabs button { cursor: pointer; transition: color .15s, background .15s; }
+.fd-tabs button:hover { color: var(--text); }
+.fd-tabs button.on { color: #fff; background: linear-gradient(135deg, rgba(139,124,255,.3), rgba(106,91,255,.16)); box-shadow: inset 0 0 0 1px rgba(139,124,255,.5); }
+.fd-copy { flex: none; padding: 6px 12px; border: 1px solid rgba(255,255,255,.12); border-radius: 9px; background: rgba(255,255,255,.04); color: var(--muted); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: color .15s, border-color .15s; }
+.fd-copy:hover { color: var(--text); border-color: var(--accent); }
+.fd-copy.done { color: var(--ok); border-color: rgba(61,220,151,.5); }
+.fd-codebox pre { display: none; margin: 0; padding: 16px 18px; overflow-x: auto; color: #dcdcec; font-size: 13px; line-height: 1.6; tab-size: 2; }
+.fd-codebox pre.on { display: block; }
+.t-c { color: #6c6c88; font-style: italic; }
+.t-s { color: #9be5b9; }
+.t-k { color: var(--accent-2); }
+.t-w { color: #b4a9ff; }
+.t-n { color: #ff9ee3; }
+
+/* endpoints */
+.fd-ep-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 4px 0 8px; }
+.fd-ep-head code.path { padding: 6px 12px; border-radius: 10px; background: rgba(8,8,14,.8); border: 1px solid rgba(255,255,255,.1); color: var(--text); font-size: 14px; white-space: normal; word-break: break-all; }
+.fd-m { display: inline-block; padding: 5px 11px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: .05em; }
+.m-get { color: #3ddc97; background: rgba(61,220,151,.12); box-shadow: inset 0 0 0 1px rgba(61,220,151,.4); }
+.m-post { color: #b4a9ff; background: rgba(139,124,255,.16); box-shadow: inset 0 0 0 1px rgba(139,124,255,.5); }
+.m-del { color: #ff8f9b; background: rgba(255,92,108,.12); box-shadow: inset 0 0 0 1px rgba(255,92,108,.45); }
+.fd-nav .m.m-get { color: #3ddc97; background: none; box-shadow: none; padding: 0; }
+.fd-nav .m.m-post { color: #b4a9ff; background: none; box-shadow: none; padding: 0; }
+.fd-nav .m.m-del { color: #ff8f9b; background: none; box-shadow: none; padding: 0; }
+
+.fd-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 12px; }
+.fd-badges span { padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); color: var(--muted); font-size: 11.5px; font-weight: 600; }
+
+.fd-foot { margin: 40px 0 0; text-align: center; color: var(--faint); font-size: 13px; }
+
+/* =========================================================
+   KEYFRAMES
+   ========================================================= */
+
+@keyframes fd-rotate { to { transform: rotate(360deg); } }
+@keyframes fd-drift-1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(120px,90px) scale(1.12); } }
+@keyframes fd-drift-2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-130px,-80px) scale(1.1); } }
+@keyframes fd-drift-3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-90px,70px) scale(1.2); } }
+@keyframes fd-grid-pan { to { background-position: 56px 56px, 56px 56px; } }
+@keyframes fd-float { 0%,100% { transform: translate(0,0) rotate(0deg); } 33% { transform: translate(14px,-22px) rotate(40deg); } 66% { transform: translate(-12px,12px) rotate(-30deg); } }
+@keyframes fd-card-in { from { opacity: 0; transform: translateY(24px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* =========================================================
+   RESPONSIVE + ACCESSIBILITY
+   ========================================================= */
+
+@media (max-width: 960px) {
+  .fd-top { display: flex; }
+  .fd-side { position: fixed; top: 0; left: 0; z-index: 40; width: min(320px, 88vw); flex: none; transform: translateX(-105%); transition: transform .35s cubic-bezier(.3,.9,.3,1); padding: 12px; }
+  .fd-side.open { transform: none; }
+  .fd-main { padding: 14px 14px 60px; }
+  .fd-card { padding: 24px 18px 22px; border-radius: 22px; }
+  .fd-shell { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .fd-aurora, .fd-orb, .fd-grid, .fd-shape, .fd-hero, .fd-primary::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="fd-bg" aria-hidden="true">
+  <div class="fd-aurora"></div>
+  <div class="fd-orb fd-orb-1"></div>
+  <div class="fd-orb fd-orb-2"></div>
+  <div class="fd-orb fd-orb-3"></div>
+  <div class="fd-grid"></div>
+  <span class="fd-shape fd-shape-ring" style="width:54px;height:54px;top:12%;left:46%"></span>
+  <span class="fd-shape fd-shape-square" style="width:38px;height:38px;top:62%;left:90%;animation-delay:-4s"></span>
+  <span class="fd-shape fd-shape-diamond" style="width:30px;height:30px;top:80%;left:38%;animation-delay:-8s"></span>
+  <span class="fd-shape fd-shape-ring" style="width:26px;height:26px;top:30%;left:94%;animation-delay:-11s"></span>
+  <div class="fd-spot"></div>
+  <div class="fd-vignette"></div>
+</div>
+
+<div class="fd-top">
+  <a class="fd-brand" href="#overview" style="padding:0"><span class="fd-logo" style="width:32px;height:32px;font-size:16px;border-radius:10px">F</span>Fades Docs</a>
+  <button class="fd-burger" id="burger" type="button" aria-expanded="false">Menu</button>
+</div>
+
+<div class="fd-shell">
+
+<!-- =========================================================
+     SIDEBAR
+     ========================================================= -->
+<aside class="fd-side" id="side">
+  <div class="fd-side-card">
+    <a class="fd-brand" href="#overview"><span class="fd-logo">F</span><span>Fades Identity<small>Developer docs</small></span></a>
+    <div class="fd-search"><input id="q" type="search" placeholder="Search docs  ( / )" autocomplete="off" aria-label="Search the docs"></div>
+    <nav class="fd-nav" id="nav">
+      <h4>Getting started</h4>
+      <a href="#overview">Overview</a>
+      <a href="#quickstart">Quickstart</a>
+      <a href="#concepts">Core concepts</a>
+
+      <h4>Guides</h4>
+      <a href="#flow">Authorization flow</a>
+      <a href="#register">Registering an app</a>
+      <a href="#idtoken">ID tokens</a>
+      <a href="#tokens">Tokens &amp; refresh</a>
+
+      <h4>API reference</h4>
+      <a href="#ep-discovery"><span class="m m-get">GET</span>Discovery</a>
+      <a href="#ep-jwks"><span class="m m-get">GET</span>JWKS</a>
+      <a href="#ep-authorize"><span class="m m-get">GET</span>Authorize</a>
+      <a href="#ep-token"><span class="m m-post">POST</span>Token (code)</a>
+      <a href="#ep-refresh"><span class="m m-post">POST</span>Token (refresh)</a>
+      <a href="#ep-userinfo"><span class="m m-get">GET</span>UserInfo</a>
+      <a href="#ep-revoke"><span class="m m-post">POST</span>Revoke</a>
+      <a href="#ep-clients-create"><span class="m m-post">POST</span>Create app</a>
+      <a href="#ep-clients-list"><span class="m m-get">GET</span>List apps</a>
+      <a href="#ep-clients-delete"><span class="m m-del">DEL</span>Delete app</a>
+      <a href="#ep-grants-list"><span class="m m-get">GET</span>Connected apps</a>
+      <a href="#ep-grants-revoke"><span class="m m-del">DEL</span>Disconnect app</a>
+      <a href="#ep-consent"><span class="m m-post">POST</span>Consent endpoints</a>
+
+      <h4>SDKs &amp; examples</h4>
+      <a href="#sdk-js">JavaScript client</a>
+      <a href="#sdk-browser">Browser app (public)</a>
+      <a href="#sdk-next">Next.js</a>
+      <a href="#sdk-express">Express</a>
+      <a href="#sdk-python">Python</a>
+      <a href="#sdk-curl">cURL</a>
+      <a href="#sdk-verify">Verify an ID token</a>
+
+      <h4>Reference</h4>
+      <a href="#errors">Error codes</a>
+      <a href="#limits">Limits &amp; lifetimes</a>
+      <a href="#security">Security checklist</a>
+      <a href="#troubleshooting">Troubleshooting</a>
+      <a href="#changelog">Changelog</a>
+    </nav>
+    <div class="fd-side-foot">Fades Identity · OAuth 2.0 + OpenID Connect</div>
+  </div>
+</aside>
+
+<!-- =========================================================
+     CONTENT
+     ========================================================= -->
+<main class="fd-main">
+<div class="fd-wrap">
+
+<!-- ---------- OVERVIEW ---------- -->
+<header class="fd-hero" id="overview" data-k="introduction base url overview what is">
+  <span class="fd-pill">Fades Identity · v1</span>
+  <h1>Sign users in with <em>Fades</em>.</h1>
+  <p>Fades Identity is an OAuth 2.0 and OpenID Connect provider. Add “Sign in with Fades” to your app using the Authorization Code flow with PKCE, then read the user’s profile and email with a single API call.</p>
+  <div class="fd-hero-actions">
+    <a class="fd-primary" href="#quickstart">Quickstart</a>
+    <a class="fd-ghost" href="#ep-authorize">API reference</a>
+    <a class="fd-ghost" href="#sdk-js">Client library</a>
+  </div>
+</header>
+
+<section class="fd-card" data-k="base url endpoints host">
+  <span class="fd-kicker">Basics</span>
+  <h2>Base URLs</h2>
+  <p class="fd-lead">Everything your app calls lives under one base URL. Users approve access on the Fades sign-in site.</p>
+  <div class="fd-table"><table>
+    <tr><th>Name</th><th>URL</th><th>Used for</th></tr>
+    <tr><td>API base</td><td><code>https://api.fades.lol/oauth</code></td><td>Token, UserInfo, revoke, JWKS, app management</td></tr>
+    <tr><td>Issuer</td><td><code>https://api.fades.lol</code></td><td>The <code>iss</code> value inside ID tokens</td></tr>
+    <tr><td>Sign-in site</td><td><code>https://auth.fades.lol</code></td><td>Where users sign in and approve your app</td></tr>
+  </table></div>
+  <div class="fd-grid-cards">
+    <div class="fd-mini"><div class="ic">🔐</div><b>PKCE required</b><span>Every authorization uses S256 PKCE, for public and confidential apps.</span></div>
+    <div class="fd-mini"><div class="ic">🪪</div><b>OpenID Connect</b><span>RS256-signed ID tokens, a JWKS endpoint and a UserInfo endpoint.</span></div>
+    <div class="fd-mini"><div class="ic">♻️</div><b>Rotating refresh</b><span>Refresh tokens last 30 days and rotate on every use.</span></div>
+    <div class="fd-mini"><div class="ic">🧩</div><b>Three scopes</b><span><code>openid</code>, <code>profile</code> and <code>email</code>. Nothing else to configure.</span></div>
+  </div>
+</section>
+
+<!-- ---------- QUICKSTART ---------- -->
+<section class="fd-card" id="quickstart" data-k="quickstart getting started tutorial first steps">
+  <span class="fd-kicker">Getting started</span>
+  <h2>Quickstart</h2>
+  <p class="fd-lead">From zero to a signed-in user in about five steps.</p>
+  <ol class="fd-steps">
+    <li><b>Register your app.</b> Create an app to get a <code>client_id</code> (and a <code>client_secret</code> if it’s a server-side app). Add your callback URL as a redirect URI. See <a href="#register">Registering an app</a>.</li>
+    <li><b>Send the user to Fades.</b> Generate a PKCE verifier and challenge, then redirect the browser to <a href="#ep-authorize"><code>/oauth/authorize</code></a>.</li>
+    <li><b>Receive the code.</b> After the user approves, Fades redirects back to your redirect URI with <code>?code=…&amp;state=…</code>. The code works once and expires in 60 seconds.</li>
+    <li><b>Exchange the code.</b> POST the code and your PKCE verifier to <a href="#ep-token"><code>/oauth/token</code></a> from your <b>server</b>. You get an access token, a refresh token and an ID token.</li>
+    <li><b>Load the profile.</b> Call <a href="#ep-userinfo"><code>/oauth/userinfo</code></a> with the access token, or verify the <a href="#idtoken">ID token</a>.</li>
+  </ol>
+  <p>The shortest working version using the <a href="#sdk-js">JavaScript client</a>:</p>
+  <pre data-lang="js" data-label="JavaScript">import { FadesIdentity, createPkcePair, randomString } from "./fades-identity.js";
+
+const fades = new FadesIdentity({
+  clientId: "fades_YOUR_CLIENT_ID",
+  clientSecret: process.env.FADES_CLIENT_SECRET, // server only. Omit for public apps
+  redirectUri: "https://example.com/auth/callback",
+});
+
+// 1. Start sign-in
+const { verifier, challenge } = await createPkcePair();
+const state = randomString(16);
+// ...save verifier + state (session or cookie), then redirect to:
+const url = fades.authorizationUrl({ challenge, state });
+
+// 2. In your callback route
+const tokens = await fades.exchangeCode({ code, verifier });
+const user = await fades.userinfo(tokens.access_token);
+console.log(user.preferred_username, user.email);</pre>
+</section>
+
+<!-- ---------- CONCEPTS ---------- -->
+<section class="fd-card" id="concepts" data-k="concepts clients public confidential scopes pkce claims">
+  <span class="fd-kicker">Getting started</span>
+  <h2>Core concepts</h2>
+
+  <h3>Apps (clients)</h3>
+  <p>An <b>app</b> is how Fades knows who is asking. Each app has a <code>client_id</code> that starts with <code>fades_</code> and a list of exact-match <b>redirect URIs</b>.</p>
+  <div class="fd-table"><table>
+    <tr><th>Type</th><th>Has a secret?</th><th>Use it for</th></tr>
+    <tr><td>Confidential</td><td>Yes. Shown once at creation</td><td>Server-side apps: Next.js API routes, Express, Python backends. The secret never leaves your server.</td></tr>
+    <tr><td>Public</td><td>No. Relies on PKCE</td><td>Single-page apps, desktop apps and mobile apps that can’t keep a secret.</td></tr>
+  </table></div>
+
+  <h3>Scopes</h3>
+  <p>Scopes decide what ends up in the ID token and UserInfo response. If you omit <code>scope</code>, it defaults to <code>openid</code>.</p>
+  <div class="fd-table"><table>
+    <tr><th>Scope</th><th>Grants</th><th>Claims returned</th></tr>
+    <tr><td><code>openid</code></td><td>Required for sign-in. Enables the ID token and UserInfo</td><td><code>sub</code></td></tr>
+    <tr><td><code>profile</code></td><td>Username, display name, avatar</td><td><code>name</code>, <code>preferred_username</code>, <code>picture</code></td></tr>
+    <tr><td><code>email</code></td><td>Email address and verification status</td><td><code>email</code>, <code>email_verified</code></td></tr>
+  </table></div>
+
+  <h3>PKCE</h3>
+  <p>PKCE (Proof Key for Code Exchange) ties the authorization code to the app instance that asked for it, so a stolen code is useless. You create a random <b>code verifier</b>, send its SHA-256 hash (the <b>code challenge</b>) when you start sign-in, and send the verifier itself when you redeem the code.</p>
+  <ul>
+    <li><b>Verifier:</b> 43–128 characters from <code>A–Z a–z 0–9 - . _ ~</code>. Generate 32 random bytes and base64url-encode them.</li>
+    <li><b>Challenge:</b> <code>base64url(SHA-256(verifier))</code>, without <code>=</code> padding. Always send <code>code_challenge_method=S256</code>. <code>plain</code> is not supported.</li>
+  </ul>
+</section>
+
+<!-- ---------- FLOW ---------- -->
+<section class="fd-card" id="flow" data-k="authorization code flow pkce sequence login">
+  <span class="fd-kicker">Guides</span>
+  <h2>Authorization flow</h2>
+  <p class="fd-lead">The Authorization Code flow with PKCE, step by step.</p>
+  <ol class="fd-steps">
+    <li><b>Your app</b> creates <code>verifier</code>, <code>challenge</code>, <code>state</code> (and optionally <code>nonce</code>) and stores them where the callback can find them.</li>
+    <li><b>Browser → Fades</b> <code>GET /oauth/authorize?…</code> Fades validates the app and redirect URI, then forwards the user to <code>auth.fades.lol</code>.</li>
+    <li><b>User</b> signs in and approves or denies the requested scopes.</li>
+    <li><b>Fades → your callback</b> The browser lands on your redirect URI with <code>code</code> and <code>state</code> (or <code>error</code> and <code>state</code>).</li>
+    <li><b>Your server → Fades</b> <code>POST /oauth/token</code> with the code, redirect URI and <code>code_verifier</code>.</li>
+    <li><b>Fades → your server</b> returns <code>access_token</code>, <code>refresh_token</code> and, for <code>openid</code>, an <code>id_token</code>.</li>
+    <li><b>Your server → Fades</b> <code>GET /oauth/userinfo</code> with the access token to load the profile.</li>
+  </ol>
+  <div class="fd-warn"><b>Always check <code>state</code>.</b> Compare the <code>state</code> on the callback with the one you saved. If it doesn’t match, stop. That request wasn’t started by your app.</div>
+  <div class="fd-note"><b>The redirect URI must match exactly.</b> The <code>redirect_uri</code> you send to <code>/authorize</code> and <code>/token</code> must be identical, character for character, to one registered on the app, including trailing slashes.</div>
+</section>
+
+<!-- ---------- REGISTER ---------- -->
+<section class="fd-card" id="register" data-k="register app create client redirect uri secret">
+  <span class="fd-kicker">Guides</span>
+  <h2>Registering an app</h2>
+  <p>Create an app with <a href="#ep-clients-create"><code>POST /oauth/clients</code></a> while signed in to Fades (the dashboard does this for you). The response contains the <code>clientId</code> and, for confidential apps, the <code>clientSecret</code>.</p>
+  <div class="fd-danger"><b>The client secret is shown once.</b> Fades stores only a hash of it. If you lose it, delete the app and create a new one.</div>
+  <h3>Redirect URI rules</h3>
+  <ul>
+    <li>1 to 10 redirect URIs per app, each an absolute URL.</li>
+    <li><code>https://</code> is required. <code>http://</code> is allowed only for <code>localhost</code> and <code>127.0.0.1</code> (for development).</li>
+    <li>No URL fragments (<code>#…</code>) and no credentials in the URL (<code>user:pass@</code>).</li>
+    <li>You can have up to 20 apps per account. App names are trimmed to 60 characters.</li>
+  </ul>
+  <h3>Which type should I pick?</h3>
+  <ul>
+    <li>Do you have a backend that can keep an environment variable private? Create a <b>confidential</b> app and do the token exchange there.</li>
+    <li>Pure front-end or native app? Create a <b>public</b> app (<code>"public": true</code>). PKCE protects the exchange.</li>
+  </ul>
+</section>
+
+<!-- ---------- ID TOKEN ---------- -->
+<section class="fd-card" id="idtoken" data-k="id token jwt claims rs256 nonce verify">
+  <span class="fd-kicker">Guides</span>
+  <h2>ID tokens</h2>
+  <p>When you request the <code>openid</code> scope, the token response includes an <code>id_token</code>: a JWT signed with <b>RS256</b>. It proves who signed in. Use it right after the exchange to establish your own session. It lives for only <b>5 minutes</b>.</p>
+  <h3>Header</h3>
+  <pre data-lang="json" data-label="JSON">{ "alg": "RS256", "typ": "JWT", "kid": "fades-rsa-1" }</pre>
+  <h3>Claims</h3>
+  <div class="fd-table"><table>
+    <tr><th>Claim</th><th>Always?</th><th>Description</th></tr>
+    <tr><td><code>iss</code></td><td>Yes</td><td>Issuer: <code>https://api.fades.lol</code></td></tr>
+    <tr><td><code>sub</code></td><td>Yes</td><td>The user’s stable, unique ID. Use this as your user key</td></tr>
+    <tr><td><code>aud</code></td><td>Yes</td><td>Your <code>client_id</code></td></tr>
+    <tr><td><code>iat</code>, <code>exp</code></td><td>Yes</td><td>Issued-at and expiry, in Unix seconds</td></tr>
+    <tr><td><code>nonce</code></td><td>If you sent one</td><td>The nonce from your authorize request</td></tr>
+    <tr><td><code>name</code></td><td><code>profile</code></td><td>Display name (falls back to the username)</td></tr>
+    <tr><td><code>preferred_username</code></td><td><code>profile</code></td><td>The user’s Fades username</td></tr>
+    <tr><td><code>picture</code></td><td><code>profile</code>, if set</td><td>Avatar URL</td></tr>
+    <tr><td><code>email</code></td><td><code>email</code>, if set</td><td>Email address</td></tr>
+    <tr><td><code>email_verified</code></td><td><code>email</code></td><td><code>true</code> or <code>false</code></td></tr>
+  </table></div>
+  <h3>Verifying it</h3>
+  <p>Fetch the public key from <a href="#ep-jwks">the JWKS endpoint</a>, check the RS256 signature, then check <code>iss</code>, <code>aud</code>, <code>exp</code> and <code>nonce</code>. A ready-made example is in <a href="#sdk-verify">Verify an ID token</a>. If you only need the profile, the <a href="#ep-userinfo">UserInfo endpoint</a> is simpler.</p>
+  <div class="fd-note">Refreshing a token (<code>grant_type=refresh_token</code>) does <b>not</b> return a new ID token. Use UserInfo for fresh profile data.</div>
+</section>
+
+<!-- ---------- TOKENS ---------- -->
+<section class="fd-card" id="tokens" data-k="tokens access refresh lifetime rotation revoke expire">
+  <span class="fd-kicker">Guides</span>
+  <h2>Tokens &amp; refresh</h2>
+  <div class="fd-table"><table>
+    <tr><th>Token</th><th>Lifetime</th><th>Notes</th></tr>
+    <tr><td>Authorization code</td><td>60 seconds</td><td>Single use. Consumed the moment you redeem it</td></tr>
+    <tr><td>Access token</td><td>1 hour (<code>expires_in: 3600</code>)</td><td>Opaque string. Send as <code>Authorization: Bearer …</code></td></tr>
+    <tr><td>Refresh token</td><td>30 days</td><td>Opaque. <b>Rotates</b>: every refresh returns a new one and kills the old one</td></tr>
+    <tr><td>ID token</td><td>5 minutes</td><td>RS256 JWT. For establishing a session, not for API calls</td></tr>
+  </table></div>
+  <h3>Rotation in practice</h3>
+  <p>Each time you call the token endpoint with <code>grant_type=refresh_token</code>, Fades issues a new access token <b>and</b> a new refresh token, and the one you used stops working. Always save the new refresh token. If two requests race with the same refresh token, one wins and the other gets <code>invalid_grant</code>.</p>
+  <h3>Signing users out</h3>
+  <p>Call <a href="#ep-revoke"><code>POST /oauth/revoke</code></a> with the access or refresh token. Users can also disconnect your app themselves from their account (see <a href="#ep-grants-revoke">Disconnect app</a>), which invalidates all your tokens for that user.</p>
+</section>
+
+<!-- =========================================================
+     API REFERENCE
+     ========================================================= -->
+
+<section class="fd-card" id="ep-discovery" data-k="discovery openid-configuration metadata well-known">
+  <span class="fd-kicker">API reference</span>
+  <div class="fd-ep-head"><span class="fd-m m-get">GET</span><code class="path">/oauth/.well-known/openid-configuration</code></div>
+  <h2>Discovery</h2>
+  <p>Returns the provider metadata: endpoint URLs, supported scopes, signing algorithm and more. OpenID Connect libraries can use this to configure themselves. Cached for 1 hour.</p>
+  <div class="fd-badges"><span>No authentication</span><span>Public</span></div>
+  <pre data-lang="sh" data-label="cURL">curl https://api.fades.lol/oauth/.well-known/openid-configuration</pre>
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{
+  "issuer": "https://api.fades.lol",
+  "authorization_endpoint": "https://api.fades.lol/oauth/authorize",
+  "token_endpoint": "https://api.fades.lol/oauth/token",
+  "userinfo_endpoint": "https://api.fades.lol/oauth/userinfo",
+  "jwks_uri": "https://api.fades.lol/oauth/jwks",
+  "revocation_endpoint": "https://api.fades.lol/oauth/revoke",
+  "response_types_supported": ["code"],
+  "response_modes_supported": ["query"],
+  "grant_types_supported": ["authorization_code", "refresh_token"],
+  "subject_types_supported": ["public"],
+  "id_token_signing_alg_values_supported": ["RS256"],
+  "scopes_supported": ["openid", "profile", "email"],
+  "token_endpoint_auth_methods_supported": ["client_secret_post", "client_secret_basic", "none"],
+  "code_challenge_methods_supported": ["S256"],
+  "claims_supported": ["iss", "sub", "aud", "iat", "exp", "nonce", "name", "preferred_username", "picture", "email", "email_verified"]
+}</pre>
+</section>
+
+<section class="fd-card" id="ep-jwks" data-k="jwks keys public key signature verify">
+  <div class="fd-ep-head"><span class="fd-m m-get">GET</span><code class="path">/oauth/jwks</code></div>
+  <h2>JWKS</h2>
+  <p>The public key used to verify ID token signatures, as a JSON Web Key Set. Cached for 1 hour, so fetch it with a library that caches (like <code>jose</code>) rather than on every login.</p>
+  <div class="fd-badges"><span>No authentication</span><span>Public</span></div>
+  <pre data-lang="sh" data-label="cURL">curl https://api.fades.lol/oauth/jwks</pre>
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{
+  "keys": [
+    {
+      "kty": "RSA",
+      "n": "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw",
+      "e": "AQAB",
+      "kid": "fades-rsa-1",
+      "use": "sig",
+      "alg": "RS256",
+      "key_ops": ["verify"]
+    }
+  ]
+}</pre>
+  <div class="fd-note">Your real <code>n</code> value will differ. Match tokens to keys using the <code>kid</code> in the token header.</div>
+  <h4>Errors</h4>
+  <p><code>500 {"error":"server_error"}</code> means the provider’s signing key isn’t available. This is a server-side problem, not something your app can fix.</p>
+</section>
+
+<section class="fd-card" id="ep-authorize" data-k="authorize authorization redirect login consent start">
+  <div class="fd-ep-head"><span class="fd-m m-get">GET</span><code class="path">/oauth/authorize</code></div>
+  <h2>Authorize</h2>
+  <p>Starts sign-in. Send the user’s <b>browser</b> here (a redirect or link, not a <code>fetch</code>). Fades validates the request and forwards the user to the sign-in and consent page. When they decide, they’re sent back to your redirect URI.</p>
+  <div class="fd-badges"><span>Browser redirect</span><span>No authentication header</span></div>
+  <h4>Query parameters</h4>
+  <div class="fd-table"><table>
+    <tr><th>Name</th><th>Description</th></tr>
+    <tr><td><code>client_id</code><span class="fd-req">required</span></td><td>Your app’s ID, for example <code>fades_a1B2c3D4e5F6g7H8</code></td></tr>
+    <tr><td><code>redirect_uri</code><span class="fd-req">required</span></td><td>One of the redirect URIs registered on the app. Exact match</td></tr>
+    <tr><td><code>response_type</code><span class="fd-req">required</span></td><td>Must be <code>code</code></td></tr>
+    <tr><td><code>code_challenge</code><span class="fd-req">required</span></td><td><code>base64url(SHA-256(verifier))</code>, 43–128 chars of <code>A–Z a–z 0–9 - _</code></td></tr>
+    <tr><td><code>code_challenge_method</code><span class="fd-req">required</span></td><td>Must be <code>S256</code></td></tr>
+    <tr><td><code>scope</code><span class="fd-opt">optional</span></td><td>Space-separated list from <code>openid profile email</code>. Defaults to <code>openid</code></td></tr>
+    <tr><td><code>state</code><span class="fd-opt">recommended</span></td><td>Random value you generate. Returned unchanged on the redirect back. Use it to block CSRF</td></tr>
+    <tr><td><code>nonce</code><span class="fd-opt">optional</span></td><td>Random string (max 1024 chars). Copied into the ID token to prevent replay</td></tr>
+  </table></div>
+  <h4>Example request</h4>
+  <pre data-lang="txt" data-label="URL">https://api.fades.lol/oauth/authorize
+  ?client_id=fades_a1B2c3D4e5F6g7H8
+  &amp;redirect_uri=https%3A%2F%2Fexample.com%2Fauth%2Fcallback
+  &amp;response_type=code
+  &amp;scope=openid%20profile%20email
+  &amp;state=Zp3k9xQ1mT8vLw2A
+  &amp;code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+  &amp;code_challenge_method=S256
+  &amp;nonce=n-0S6_WzA2Mj</pre>
+  <h4>Redirect back to your app</h4>
+  <pre data-lang="txt" data-label="Approved">https://example.com/auth/callback?code=Qm9uZ2pvdXJfZmFkZXM&amp;state=Zp3k9xQ1mT8vLw2A</pre>
+  <pre data-lang="txt" data-label="Denied or invalid">https://example.com/auth/callback?error=access_denied&amp;state=Zp3k9xQ1mT8vLw2A</pre>
+  <div class="fd-warn"><b>Unknown app or unregistered redirect URI:</b> Fades never redirects to an unverified address. Instead the user lands on <code>auth.fades.lol/oauth/error</code> with a message (<code>Unknown app.</code> or <code>This redirect address isn't registered for the app.</code>). Your callback is never called, so check these first when sign-in “does nothing”.</div>
+  <h4>Errors returned on the redirect</h4>
+  <div class="fd-table"><table>
+    <tr><th><code>error</code></th><th>Cause</th></tr>
+    <tr><td><code>unsupported_response_type</code></td><td><code>response_type</code> wasn’t <code>code</code></td></tr>
+    <tr><td><code>invalid_request</code></td><td>Missing or malformed <code>code_challenge</code>, method isn’t <code>S256</code>, or <code>nonce</code> is too long or not a string</td></tr>
+    <tr><td><code>invalid_scope</code></td><td>A scope other than <code>openid</code>, <code>profile</code> or <code>email</code></td></tr>
+    <tr><td><code>access_denied</code></td><td>The user pressed “Deny”</td></tr>
+  </table></div>
+</section>
+
+<section class="fd-card" id="ep-token" data-k="token exchange authorization_code code verifier access refresh id_token client authentication">
+  <div class="fd-ep-head"><span class="fd-m m-post">POST</span><code class="path">/oauth/token</code></div>
+  <h2>Token · exchange a code</h2>
+  <p>Trades the authorization code for tokens. Call this from your <b>server</b> (confidential apps), or from the client for public apps. The code is consumed on success.</p>
+  <div class="fd-badges"><span>Content-Type: application/json</span><span>Client authentication</span><span>60 requests / minute</span></div>
+
+  <h4>Client authentication</h4>
+  <p>Pick one method. Public apps (no secret) send only <code>client_id</code>.</p>
+  <div class="fd-table"><table>
+    <tr><th>Method</th><th>How</th></tr>
+    <tr><td><code>client_secret_post</code></td><td>Put <code>client_id</code> and <code>client_secret</code> in the request body</td></tr>
+    <tr><td><code>client_secret_basic</code></td><td><code>Authorization: Basic base64(urlencode(client_id):urlencode(client_secret))</code></td></tr>
+    <tr><td><code>none</code></td><td>Public apps only: <code>client_id</code> in the body, PKCE does the rest</td></tr>
+  </table></div>
+
+  <h4>Body parameters</h4>
+  <div class="fd-table"><table>
+    <tr><th>Name</th><th>Description</th></tr>
+    <tr><td><code>grant_type</code><span class="fd-req">required</span></td><td><code>authorization_code</code></td></tr>
+    <tr><td><code>code</code><span class="fd-req">required</span></td><td>The code from the redirect</td></tr>
+    <tr><td><code>redirect_uri</code><span class="fd-req">required</span></td><td>Same value you sent to <code>/authorize</code></td></tr>
+    <tr><td><code>code_verifier</code><span class="fd-req">required</span></td><td>The original PKCE verifier (43–128 chars of <code>A–Z a–z 0–9 - . _ ~</code>)</td></tr>
+    <tr><td><code>client_id</code><span class="fd-req">required</span></td><td>Your app’s ID (unless using Basic auth)</td></tr>
+    <tr><td><code>client_secret</code><span class="fd-opt">confidential only</span></td><td>Your app’s secret (unless using Basic auth)</td></tr>
+  </table></div>
+
+  <div class="fd-group">
+<pre data-lang="sh" data-label="cURL">curl -X POST https://api.fades.lol/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "authorization_code",
+    "client_id": "fades_a1B2c3D4e5F6g7H8",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "code": "Qm9uZ2pvdXJfZmFkZXM",
+    "redirect_uri": "https://example.com/auth/callback",
+    "code_verifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+  }'</pre>
+<pre data-lang="js" data-label="JavaScript">const res = await fetch("https://api.fades.lol/oauth/token", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    grant_type: "authorization_code",
+    client_id: process.env.FADES_CLIENT_ID,
+    client_secret: process.env.FADES_CLIENT_SECRET,
+    code,
+    redirect_uri: "https://example.com/auth/callback",
+    code_verifier: verifier,
+  }),
+});
+const tokens = await res.json();
+if (!res.ok) throw new Error(tokens.error);</pre>
+<pre data-lang="py" data-label="Python">import os, requests
+
+res = requests.post("https://api.fades.lol/oauth/token", json={
+    "grant_type": "authorization_code",
+    "client_id": os.environ["FADES_CLIENT_ID"],
+    "client_secret": os.environ["FADES_CLIENT_SECRET"],
+    "code": code,
+    "redirect_uri": "https://example.com/auth/callback",
+    "code_verifier": verifier,
+}, timeout=20)
+tokens = res.json()
+res.raise_for_status()</pre>
+  </div>
+
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{
+  "access_token": "dGhpc19pc19hbl9hY2Nlc3NfdG9rZW4",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "dGhpc19pc19hX3JlZnJlc2hfdG9rZW4",
+  "scope": "openid profile email",
+  "id_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImZhZGVzLXJzYS0xIn0..."
+}</pre>
+  <p><code>id_token</code> is included only when <code>openid</code> was granted. Responses are sent with <code>Cache-Control: no-store</code>.</p>
+  <h4>Errors</h4>
+  <p>See <a href="#errors">Error codes</a> for the full list. The common ones are <code>invalid_client</code> (401), <code>invalid_grant</code> (400) and <code>server_error</code> (500).</p>
+  <div class="fd-warn"><b>Codes are single use.</b> If the exchange fails for any reason after the code was validated, start the sign-in again to get a fresh code.</div>
+</section>
+
+<section class="fd-card" id="ep-refresh" data-k="refresh token grant_type refresh_token rotate renew">
+  <div class="fd-ep-head"><span class="fd-m m-post">POST</span><code class="path">/oauth/token</code></div>
+  <h2>Token · refresh</h2>
+  <p>Gets a new access token using a refresh token. The refresh token <b>rotates</b>: the response contains a new one, and the one you sent is invalidated.</p>
+  <div class="fd-badges"><span>Same endpoint as above</span><span>Client authentication</span><span>60 requests / minute</span></div>
+  <h4>Body parameters</h4>
+  <div class="fd-table"><table>
+    <tr><th>Name</th><th>Description</th></tr>
+    <tr><td><code>grant_type</code><span class="fd-req">required</span></td><td><code>refresh_token</code></td></tr>
+    <tr><td><code>refresh_token</code><span class="fd-req">required</span></td><td>The refresh token you were given</td></tr>
+    <tr><td><code>client_id</code>, <code>client_secret</code></td><td>Same authentication as the code exchange. The token must belong to the same app</td></tr>
+  </table></div>
+  <div class="fd-group">
+<pre data-lang="sh" data-label="cURL">curl -X POST https://api.fades.lol/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "refresh_token",
+    "client_id": "fades_a1B2c3D4e5F6g7H8",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "refresh_token": "dGhpc19pc19hX3JlZnJlc2hfdG9rZW4"
+  }'</pre>
+<pre data-lang="js" data-label="JavaScript">const tokens = await fades.refresh(savedRefreshToken);
+// Save BOTH new values. The old refresh token no longer works.
+save({ access: tokens.access_token, refresh: tokens.refresh_token });</pre>
+<pre data-lang="py" data-label="Python">res = requests.post("https://api.fades.lol/oauth/token", json={
+    "grant_type": "refresh_token",
+    "client_id": CLIENT_ID,
+    "client_secret": CLIENT_SECRET,
+    "refresh_token": saved_refresh_token,
+}, timeout=20)
+tokens = res.json()</pre>
+  </div>
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{
+  "access_token": "bmV3X2FjY2Vzc190b2tlbg",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "bmV3X3JlZnJlc2hfdG9rZW4",
+  "scope": "openid profile email"
+}</pre>
+  <p>No <code>id_token</code> is returned on refresh. Scopes stay the same as the original grant.</p>
+</section>
+
+<section class="fd-card" id="ep-userinfo" data-k="userinfo profile user info bearer me">
+  <div class="fd-ep-head"><span class="fd-m m-get">GET</span><code class="path">/oauth/userinfo</code></div>
+  <h2>UserInfo</h2>
+  <p>Returns the signed-in user’s profile. Which fields appear depends on the scopes the user granted. Requires the <code>openid</code> scope.</p>
+  <div class="fd-badges"><span>Bearer access token</span><span>60 requests / minute</span></div>
+  <div class="fd-group">
+<pre data-lang="sh" data-label="cURL">curl https://api.fades.lol/oauth/userinfo \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"</pre>
+<pre data-lang="js" data-label="JavaScript">const user = await fades.userinfo(tokens.access_token);
+// or with plain fetch:
+const res = await fetch("https://api.fades.lol/oauth/userinfo", {
+  headers: { Authorization: `Bearer ${tokens.access_token}` },
+});
+const profile = await res.json();</pre>
+<pre data-lang="py" data-label="Python">res = requests.get(
+    "https://api.fades.lol/oauth/userinfo",
+    headers={"Authorization": f"Bearer {access_token}"},
+    timeout=20,
+)
+profile = res.json()</pre>
+  </div>
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{
+  "sub": "37f3d33f-7ac7-403c-a17c-346c3083db68",
+  "name": "Ada Lovelace",
+  "preferred_username": "ada",
+  "picture": "https://example.com/avatars/ada.png",
+  "email": "ada@example.com",
+  "email_verified": true
+}</pre>
+  <div class="fd-table"><table>
+    <tr><th>Field</th><th>Needs scope</th><th>Notes</th></tr>
+    <tr><td><code>sub</code></td><td><code>openid</code></td><td>Always present. Use this as the user’s ID in your database</td></tr>
+    <tr><td><code>name</code>, <code>preferred_username</code></td><td><code>profile</code></td><td><code>name</code> falls back to the username if no display name is set</td></tr>
+    <tr><td><code>picture</code></td><td><code>profile</code></td><td>Omitted when the user has no avatar</td></tr>
+    <tr><td><code>email</code></td><td><code>email</code></td><td>Omitted when the account has no email</td></tr>
+    <tr><td><code>email_verified</code></td><td><code>email</code></td><td>Boolean</td></tr>
+  </table></div>
+  <h4>Errors</h4>
+  <p>A missing, unknown or expired token, a token without the <code>openid</code> scope, or a deleted user all return <code>401 {"error":"invalid_token"}</code> with a <code>WWW-Authenticate: Bearer error="invalid_token"</code> header. Refresh the access token and retry once.</p>
+</section>
+
+<section class="fd-card" id="ep-revoke" data-k="revoke logout sign out invalidate token">
+  <div class="fd-ep-head"><span class="fd-m m-post">POST</span><code class="path">/oauth/revoke</code></div>
+  <h2>Revoke</h2>
+  <p>Invalidates a token. Pass either the access token or the refresh token. Fades removes the matching token record, so <b>both</b> tokens in the pair stop working. Use this when a user signs out of your app.</p>
+  <div class="fd-badges"><span>Client authentication</span><span>60 requests / minute</span></div>
+  <div class="fd-table"><table>
+    <tr><th>Name</th><th>Description</th></tr>
+    <tr><td><code>token</code><span class="fd-req">required</span></td><td>An access token or refresh token that belongs to your app</td></tr>
+    <tr><td><code>client_id</code>, <code>client_secret</code></td><td>Same authentication as the token endpoint</td></tr>
+  </table></div>
+  <div class="fd-group">
+<pre data-lang="sh" data-label="cURL">curl -X POST https://api.fades.lol/oauth/revoke \
+  -H "Content-Type: application/json" \
+  -d '{
+    "client_id": "fades_a1B2c3D4e5F6g7H8",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "token": "dGhpc19pc19hX3JlZnJlc2hfdG9rZW4"
+  }'</pre>
+<pre data-lang="js" data-label="JavaScript">await fades.revoke(tokens.refresh_token);</pre>
+<pre data-lang="py" data-label="Python">requests.post("https://api.fades.lol/oauth/revoke", json={
+    "client_id": CLIENT_ID,
+    "client_secret": CLIENT_SECRET,
+    "token": refresh_token,
+}, timeout=20)</pre>
+  </div>
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{}</pre>
+  <p>An unknown or already-revoked token still returns <code>200 {}</code>, so you can’t use this endpoint to probe which tokens exist. Only failed client authentication returns an error (<code>401 invalid_client</code>).</p>
+</section>
+
+<section class="fd-card" id="ep-clients-create" data-k="create app client register new application secret redirect">
+  <span class="fd-kicker">App management</span>
+  <div class="fd-ep-head"><span class="fd-m m-post">POST</span><code class="path">/oauth/clients</code></div>
+  <h2>Create an app</h2>
+  <p>Registers a new app owned by the signed-in user. The management endpoints (apps and connected apps) use the user’s <b>Fades session</b>, not an app’s client credentials. They’re what the dashboard calls on the user’s behalf.</p>
+  <div class="fd-badges"><span>Signed-in Fades session</span><span>30 requests / 10 min</span></div>
+  <div class="fd-table"><table>
+    <tr><th>Field</th><th>Description</th></tr>
+    <tr><td><code>name</code><span class="fd-req">required</span></td><td>Shown to users on the consent screen. Trimmed to 60 characters</td></tr>
+    <tr><td><code>redirectUris</code><span class="fd-req">required</span></td><td>Array of 1–10 URLs. HTTPS, or <code>http://localhost</code> / <code>http://127.0.0.1</code> for development</td></tr>
+    <tr><td><code>public</code><span class="fd-opt">optional</span></td><td><code>true</code> creates a public app with no secret. Default <code>false</code></td></tr>
+  </table></div>
+  <pre data-lang="js" data-label="JavaScript">const res = await fetch("https://api.fades.lol/oauth/clients", {
+  method: "POST",
+  credentials: "include", // sends the user's Fades session
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    name: "My Cool App",
+    redirectUris: ["https://example.com/auth/callback", "http://localhost:3000/auth/callback"],
+    public: false,
+  }),
+});
+const app = await res.json();</pre>
+  <h4>Response · 201</h4>
+  <pre data-lang="json" data-label="JSON">{
+  "success": true,
+  "clientId": "fades_a1B2c3D4e5F6g7H8",
+  "clientSecret": "k3Jx9...store-this-now...Qw2"
+}</pre>
+  <p><code>clientSecret</code> is <code>null</code> for public apps. Save it immediately: it can’t be shown again.</p>
+  <h4>Errors · 400</h4>
+  <div class="fd-table"><table>
+    <tr><th><code>error</code> message</th><th>Cause</th></tr>
+    <tr><td>Give your app a name.</td><td><code>name</code> missing or blank</td></tr>
+    <tr><td>Add 1 to 10 valid redirect URLs (HTTPS, or localhost for development).</td><td>No URIs, more than 10, or an invalid one (bad URL, fragment, embedded credentials, plain <code>http</code> on a non-localhost host)</td></tr>
+    <tr><td>You can have up to 20 apps.</td><td>App limit reached. Delete one first</td></tr>
+  </table></div>
+</section>
+
+<section class="fd-card" id="ep-clients-list" data-k="list apps clients my applications">
+  <div class="fd-ep-head"><span class="fd-m m-get">GET</span><code class="path">/oauth/clients</code></div>
+  <h2>List your apps</h2>
+  <p>Returns the apps owned by the signed-in user. Secrets are never returned.</p>
+  <div class="fd-badges"><span>Signed-in Fades session</span></div>
+  <pre data-lang="js" data-label="JavaScript">const res = await fetch("https://api.fades.lol/oauth/clients", { credentials: "include" });
+const { clients } = await res.json();</pre>
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{
+  "success": true,
+  "clients": [
+    {
+      "id": "fades_a1B2c3D4e5F6g7H8",
+      "name": "My Cool App",
+      "redirectUris": ["https://example.com/auth/callback"],
+      "public": false,
+      "createdAt": "2026-10-09T06:12:44.000Z"
+    }
+  ]
+}</pre>
+</section>
+
+<section class="fd-card" id="ep-clients-delete" data-k="delete remove app client">
+  <div class="fd-ep-head"><span class="fd-m m-del">DELETE</span><code class="path">/oauth/clients/:id</code></div>
+  <h2>Delete an app</h2>
+  <p>Permanently deletes one of your apps. All of its access tokens, refresh tokens and unused authorization codes are removed at the same time, so every user is signed out of that app.</p>
+  <div class="fd-badges"><span>Signed-in Fades session</span><span>30 requests / 10 min</span></div>
+  <pre data-lang="js" data-label="JavaScript">await fetch("https://api.fades.lol/oauth/clients/fades_a1B2c3D4e5F6g7H8", {
+  method: "DELETE",
+  credentials: "include",
+});</pre>
+  <h4>Responses</h4>
+  <pre data-lang="json" data-label="200">{ "success": true }</pre>
+  <pre data-lang="json" data-label="404">{ "success": false, "error": "App not found." }</pre>
+  <p><code>404</code> is returned both when the app doesn’t exist and when it belongs to someone else.</p>
+</section>
+
+<section class="fd-card" id="ep-grants-list" data-k="grants connected apps authorized applications list user">
+  <span class="fd-kicker">Connected apps</span>
+  <div class="fd-ep-head"><span class="fd-m m-get">GET</span><code class="path">/oauth/grants</code></div>
+  <h2>List connected apps</h2>
+  <p>Lists the apps the signed-in user has authorized, one entry per app, with the scopes granted. Used for an “Authorized apps” settings page.</p>
+  <div class="fd-badges"><span>Signed-in Fades session</span></div>
+  <pre data-lang="js" data-label="JavaScript">const res = await fetch("https://api.fades.lol/oauth/grants", { credentials: "include" });
+const { apps } = await res.json();</pre>
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{
+  "success": true,
+  "apps": [
+    {
+      "clientId": "fades_a1B2c3D4e5F6g7H8",
+      "name": "My Cool App",
+      "scopes": ["openid", "profile", "email"],
+      "since": "2026-10-09T06:20:01.000Z"
+    }
+  ]
+}</pre>
+</section>
+
+<section class="fd-card" id="ep-grants-revoke" data-k="disconnect revoke grant app access user remove">
+  <div class="fd-ep-head"><span class="fd-m m-del">DELETE</span><code class="path">/oauth/grants/:clientId</code></div>
+  <h2>Disconnect an app</h2>
+  <p>Revokes every token a specific app holds for the signed-in user. The app can no longer call UserInfo or refresh. The user would have to approve it again to reconnect.</p>
+  <div class="fd-badges"><span>Signed-in Fades session</span></div>
+  <pre data-lang="js" data-label="JavaScript">await fetch("https://api.fades.lol/oauth/grants/fades_a1B2c3D4e5F6g7H8", {
+  method: "DELETE",
+  credentials: "include",
+});</pre>
+  <h4>Response · 200</h4>
+  <pre data-lang="json" data-label="JSON">{ "success": true }</pre>
+</section>
+
+<section class="fd-card" id="ep-consent" data-k="consent info decision internal sign-in page">
+  <span class="fd-kicker">Internal</span>
+  <div class="fd-ep-head"><span class="fd-m m-post">POST</span><code class="path">/oauth/authorize/info</code> <span class="fd-m m-post">POST</span><code class="path">/oauth/authorize/decision</code></div>
+  <h2>Consent endpoints</h2>
+  <p>These two endpoints power the Fades consent page at <code>auth.fades.lol</code>. <b>Your app doesn’t call them.</b> They’re documented so you know what the user’s approval step does.</p>
+  <div class="fd-badges"><span>Signed-in Fades session</span><span>decision: 30 requests / 10 min</span></div>
+  <ul>
+    <li><code>/authorize/info</code> takes the same fields as <code>/authorize</code> and returns the app name, requested scopes and the signed-in user, so the page can render “<i>App</i> wants access to…”.</li>
+    <li><code>/authorize/decision</code> takes the same fields plus <code>approve: true | false</code>. On approval it creates a one-time code (valid 60 seconds) and returns <code>{ "success": true, "redirectTo": "…?code=…&amp;state=…" }</code>. On denial it returns a <code>redirectTo</code> with <code>error=access_denied</code>.</li>
+  </ul>
+</section>
+
+<!-- =========================================================
+     SDKs
+     ========================================================= -->
+
+<section class="fd-card" id="sdk-js" data-k="sdk javascript client library fades-identity.js node browser">
+  <span class="fd-kicker">SDKs &amp; examples</span>
+  <h2>JavaScript client</h2>
+  <p class="fd-lead">A zero-dependency client for browsers and Node 19+. Copy it into your project as <code>fades-identity.js</code>. It isn’t published to npm, so there’s nothing to install.</p>
+  <pre data-lang="js" data-label="fades-identity.js">// fades-identity.js: zero-dependency client for Fades Identity.
+// Works in browsers and Node 19+ (needs fetch + Web Crypto).
+
+const b64url = (bytes) =>
+  btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+/** Random URL-safe string. 32 bytes gives 43 characters. */
+export function randomString(bytes = 32) {
+  return b64url(crypto.getRandomValues(new Uint8Array(bytes)));
+}
+
+/** Creates a PKCE verifier and its S256 challenge. */
+export async function createPkcePair() {
+  const verifier = randomString(32);
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(verifier)
+  );
+  return { verifier, challenge: b64url(digest) };
+}
+
+export class FadesError extends Error {
+  constructor(status, body) {
+    super(body.error_description || body.error || "Request failed");
+    this.name = "FadesError";
+    this.status = status;          // HTTP status
+    this.error = body.error;       // e.g. "invalid_grant"
+    this.requestId = body.request_id || null; // present on server_error
+  }
+}
+
+export class FadesIdentity {
+  constructor({ clientId, clientSecret, redirectUri, issuer = "https://api.fades.lol" }) {
+    this.clientId = clientId;
+    this.clientSecret = clientSecret; // leave undefined for public apps
+    this.redirectUri = redirectUri;
+    this.base = issuer.replace(/\/+$/, "") + "/oauth";
+  }
+
+  /** Build the URL to send the user's browser to. */
+  authorizationUrl({ challenge, state, nonce, scope = "openid profile email" }) {
+    const params = Object.entries({
+      client_id: this.clientId,
+      redirect_uri: this.redirectUri,
+      response_type: "code",
+      scope,
+      state,
+      nonce,
+      code_challenge: challenge,
+      code_challenge_method: "S256",
+    }).filter(([, value]) => value);
+
+    return `${this.base}/authorize?${new URLSearchParams(params)}`;
+  }
+
+  async #post(path, body) {
+    const res = await fetch(this.base + path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({
+        client_id: this.clientId,
+        ...(this.clientSecret ? { client_secret: this.clientSecret } : {}),
+        ...body,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new FadesError(res.status, data);
+    return data;
+  }
+
+  /** Trade the callback code for tokens. */
+  exchangeCode({ code, verifier }) {
+    return this.#post("/token", {
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: this.redirectUri,
+      code_verifier: verifier,
+    });
+  }
+
+  /** Get new tokens. Save the NEW refresh token. The old one is dead. */
+  refresh(refreshToken) {
+    return this.#post("/token", {
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+    });
+  }
+
+  /** Revoke an access or refresh token (sign out). */
+  revoke(token) {
+    return this.#post("/revoke", { token });
+  }
+
+  /** Load the user's profile. */
+  async userinfo(accessToken) {
+    const res = await fetch(this.base + "/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new FadesError(res.status, data);
+    return data;
+  }
+}</pre>
+  <h3>Methods</h3>
+  <div class="fd-table"><table>
+    <tr><th>Method</th><th>Returns</th><th>Calls</th></tr>
+    <tr><td><code>createPkcePair()</code></td><td><code>{ verifier, challenge }</code></td><td>Local only</td></tr>
+    <tr><td><code>randomString(bytes)</code></td><td>URL-safe string</td><td>Local only. Use for <code>state</code> and <code>nonce</code></td></tr>
+    <tr><td><code>authorizationUrl(opts)</code></td><td>URL string</td><td>Redirect target for <a href="#ep-authorize">/authorize</a></td></tr>
+    <tr><td><code>exchangeCode({ code, verifier })</code></td><td>Token response</td><td><a href="#ep-token">POST /token</a></td></tr>
+    <tr><td><code>refresh(refreshToken)</code></td><td>Token response</td><td><a href="#ep-refresh">POST /token</a></td></tr>
+    <tr><td><code>userinfo(accessToken)</code></td><td>Profile object</td><td><a href="#ep-userinfo">GET /userinfo</a></td></tr>
+    <tr><td><code>revoke(token)</code></td><td><code>{}</code></td><td><a href="#ep-revoke">POST /revoke</a></td></tr>
+  </table></div>
+  <div class="fd-note"><b>Handling errors:</b> every failed call throws a <code>FadesError</code> with <code>status</code>, <code>error</code> (like <code>"invalid_grant"</code>) and, for 500s, a <code>requestId</code> you can quote when asking for help. See <a href="#errors">Error codes</a>.</div>
+  <div class="fd-danger"><b>Never ship <code>clientSecret</code> to a browser.</b> If your code runs in a user’s browser, create a <b>public</b> app and leave the secret out.</div>
+</section>
+
+<section class="fd-card" id="sdk-browser" data-k="browser single page app spa public client example frontend">
+  <h2>Browser app (public client)</h2>
+  <p>For a pure front-end app. Create a <b>public</b> app, then run the whole flow in the browser: PKCE protects the code exchange, so no secret is needed.</p>
+  <h3>1. Start sign-in</h3>
+  <pre data-lang="js" data-label="login.js">import { FadesIdentity, createPkcePair, randomString } from "./fades-identity.js";
+
+const fades = new FadesIdentity({
+  clientId: "fades_YOUR_PUBLIC_APP_ID",
+  redirectUri: "http://localhost:3000/callback", // must be registered on the app
+});
+
+document.querySelector("#login").addEventListener("click", async () => {
+  const { verifier, challenge } = await createPkcePair();
+  const state = randomString(16);
+  const nonce = randomString(16);
+
+  sessionStorage.setItem("fades_login", JSON.stringify({ verifier, state, nonce }));
+  location.href = fades.authorizationUrl({ challenge, state, nonce });
+});</pre>
+  <h3>2. Handle the callback</h3>
+  <pre data-lang="js" data-label="callback.js">const params = new URLSearchParams(location.search);
+const saved = JSON.parse(sessionStorage.getItem("fades_login") || "null");
+sessionStorage.removeItem("fades_login");
+
+if (params.get("error")) throw new Error(`Sign-in failed: ${params.get("error")}`);
+if (!saved || params.get("state") !== saved.state) throw new Error("State mismatch");
+
+const tokens = await fades.exchangeCode({
+  code: params.get("code"),
+  verifier: saved.verifier,
+});
+const user = await fades.userinfo(tokens.access_token);
+
+history.replaceState({}, "", "/"); // remove ?code= from the address bar
+console.log(`Signed in as @${user.preferred_username}`);</pre>
+  <div class="fd-warn">Keep tokens in memory when you can. Anything in <code>localStorage</code> is readable by any script on your page.</div>
+</section>
+
+<section class="fd-card" id="sdk-next" data-k="next.js nextjs api route server proxy confidential app router pages">
+  <h2>Next.js</h2>
+  <p>Keep the client secret on the server. The browser sends only the <code>code</code> and the PKCE <code>code_verifier</code> to your own API route, and the route adds the secret and talks to Fades.</p>
+  <h3>Environment variables</h3>
+  <pre data-lang="sh" data-label=".env.local">FADES_CLIENT_ID=fades_a1B2c3D4e5F6g7H8
+FADES_CLIENT_SECRET=your-secret-here
+FADES_REDIRECT_URI=https://example.com/auth/callback</pre>
+  <h3>App Router route</h3>
+  <pre data-lang="js" data-label="app/api/token/route.js">export const dynamic = "force-dynamic";
+
+const ISSUER = (process.env.FADES_ISSUER || "https://api.fades.lol").replace(/\/+$/, "");
+
+export async function POST(request) {
+  const clientId = process.env.FADES_CLIENT_ID;
+  const clientSecret = process.env.FADES_CLIENT_SECRET;
+  const redirectUri = process.env.FADES_REDIRECT_URI;
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    return Response.json({ error: "server_configuration_error" }, { status: 500 });
+  }
+
+  const { code, code_verifier } = await request.json().catch(() => ({}));
+  if (typeof code !== "string" || typeof code_verifier !== "string") {
+    return Response.json({ error: "invalid_request" }, { status: 400 });
+  }
+
+  try {
+    const upstream = await fetch(`${ISSUER}/oauth/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(20000),
+      body: JSON.stringify({
+        grant_type: "authorization_code",
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+        redirect_uri: redirectUri,
+        code_verifier,
+      }),
+    });
+
+    // Pass Fades's status and body straight through.
+    const data = await upstream.json().catch(() => null);
+    if (!data) return Response.json({ error: "invalid_upstream_response" }, { status: 502 });
+
+    return Response.json(data, {
+      status: upstream.status,
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch {
+    return Response.json({ error: "upstream_unavailable" }, { status: 502 });
+  }
+}</pre>
+  <h3>Calling it from the callback page</h3>
+  <pre data-lang="js" data-label="app/auth/callback/page.js">"use client";
+import { useEffect } from "react";
+
+export default function Callback() {
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const saved = JSON.parse(sessionStorage.getItem("fades_login") || "null");
+    sessionStorage.removeItem("fades_login");
+
+    if (!saved || params.get("state") !== saved.state) return; // reject
+
+    fetch("/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: params.get("code"), code_verifier: saved.verifier }),
+    })
+      .then((res) => res.json())
+      .then((tokens) => {
+        // Use tokens.access_token to call /oauth/userinfo
+      });
+  }, []);
+
+  return &lt;p&gt;Signing you in…&lt;/p&gt;;
+}</pre>
+  <div class="fd-note">On the Pages Router, the same logic works as <code>export default async function handler(req, res)</code> in <code>pages/api/token.js</code>. Read <code>req.body</code> and reply with <code>res.status(…).json(…)</code>.</div>
+</section>
+
+<section class="fd-card" id="sdk-express" data-k="express node server backend session example">
+  <h2>Express</h2>
+  <p>A complete server-side login using the <a href="#sdk-js">JavaScript client</a> and session storage. Install the one extra dependency with <code>npm i express express-session</code>.</p>
+  <pre data-lang="js" data-label="server.js">import express from "express";
+import session from "express-session";
+import { FadesIdentity, createPkcePair, randomString } from "./fades-identity.js";
+
+const app = express();
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" },
+}));
+
+const fades = new FadesIdentity({
+  clientId: process.env.FADES_CLIENT_ID,
+  clientSecret: process.env.FADES_CLIENT_SECRET,
+  redirectUri: "https://example.com/auth/callback",
+});
+
+// Step 1: send the user to Fades
+app.get("/auth/login", async (req, res) => {
+  const { verifier, challenge } = await createPkcePair();
+  const state = randomString(16);
+  const nonce = randomString(16);
+
+  req.session.fades = { verifier, state, nonce };
+  res.redirect(fades.authorizationUrl({ challenge, state, nonce }));
+});
+
+// Step 2: Fades sends them back here
+app.get("/auth/callback", async (req, res) => {
+  const saved = req.session.fades;
+  delete req.session.fades;
+
+  if (req.query.error) return res.status(400).send(`Sign-in failed: ${req.query.error}`);
+  if (!saved || req.query.state !== saved.state) return res.status(400).send("Invalid state");
+
+  try {
+    const tokens = await fades.exchangeCode({ code: req.query.code, verifier: saved.verifier });
+    const user = await fades.userinfo(tokens.access_token);
+
+    req.session.user = { id: user.sub, username: user.preferred_username, email: user.email };
+    req.session.refreshToken = tokens.refresh_token;
+    res.redirect("/");
+  } catch (error) {
+    console.error("fades sign-in failed", error.status, error.error, error.requestId);
+    res.status(502).send("Sign-in failed. Please try again.");
+  }
+});
+
+// Sign out: also revoke at Fades
+app.post("/auth/logout", async (req, res) => {
+  const token = req.session.refreshToken;
+  if (token) await fades.revoke(token).catch(() => {});
+  req.session.destroy(() => res.redirect("/"));
+});
+
+app.listen(3000);</pre>
+</section>
+
+<section class="fd-card" id="sdk-python" data-k="python requests flask django example sdk">
+  <h2>Python</h2>
+  <p>A small module with the same surface as the JavaScript client. Needs <code>requests</code> (<code>pip install requests</code>).</p>
+  <pre data-lang="py" data-label="fades_identity.py">"""fades_identity.py: minimal client for Fades Identity."""
+import base64
+import hashlib
+import secrets
+from urllib.parse import urlencode
+
+import requests
+
+ISSUER = "https://api.fades.lol"
+
+
+class FadesError(Exception):
+    def __init__(self, status, body):
+        super().__init__(body.get("error_description") or body.get("error") or "Request failed")
+        self.status = status
+        self.error = body.get("error")
+        self.request_id = body.get("request_id")
+
+
+def random_string(n=32):
+    return secrets.token_urlsafe(n)
+
+
+def create_pkce_pair():
+    verifier = secrets.token_urlsafe(32)  # 43 characters
+    digest = hashlib.sha256(verifier.encode("ascii")).digest()
+    challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+    return verifier, challenge
+
+
+class FadesIdentity:
+    def __init__(self, client_id, redirect_uri, client_secret=None, issuer=ISSUER):
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.redirect_uri = redirect_uri
+        self.base = issuer.rstrip("/") + "/oauth"
+
+    def authorization_url(self, challenge, state, nonce=None, scope="openid profile email"):
+        params = {
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "response_type": "code",
+            "scope": scope,
+            "state": state,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+        }
+        if nonce:
+            params["nonce"] = nonce
+        return f"{self.base}/authorize?{urlencode(params)}"
+
+    def _post(self, path, body):
+        payload = {"client_id": self.client_id, **body}
+        if self.client_secret:
+            payload["client_secret"] = self.client_secret
+        res = requests.post(self.base + path, json=payload, timeout=20)
+        data = res.json() if res.content else {}
+        if not res.ok:
+            raise FadesError(res.status_code, data)
+        return data
+
+    def exchange_code(self, code, verifier):
+        return self._post("/token", {
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": self.redirect_uri,
+            "code_verifier": verifier,
+        })
+
+    def refresh(self, refresh_token):
+        return self._post("/token", {"grant_type": "refresh_token", "refresh_token": refresh_token})
+
+    def revoke(self, token):
+        return self._post("/revoke", {"token": token})
+
+    def userinfo(self, access_token):
+        res = requests.get(
+            self.base + "/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=20,
+        )
+        data = res.json() if res.content else {}
+        if not res.ok:
+            raise FadesError(res.status_code, data)
+        return data</pre>
+  <h3>Flask example</h3>
+  <pre data-lang="py" data-label="app.py">import os
+from flask import Flask, redirect, request, session
+from fades_identity import FadesIdentity, FadesError, create_pkce_pair, random_string
+
+app = Flask(__name__)
+app.secret_key = os.environ["SESSION_SECRET"]
+
+fades = FadesIdentity(
+    client_id=os.environ["FADES_CLIENT_ID"],
+    client_secret=os.environ["FADES_CLIENT_SECRET"],
+    redirect_uri="https://example.com/auth/callback",
+)
+
+@app.get("/auth/login")
+def login():
+    verifier, challenge = create_pkce_pair()
+    session["fades"] = {"verifier": verifier, "state": random_string(16)}
+    return redirect(fades.authorization_url(challenge, session["fades"]["state"]))
+
+@app.get("/auth/callback")
+def callback():
+    saved = session.pop("fades", None)
+    if request.args.get("error") or not saved or request.args.get("state") != saved["state"]:
+        return "Sign-in failed", 400
+    try:
+        tokens = fades.exchange_code(request.args["code"], saved["verifier"])
+        user = fades.userinfo(tokens["access_token"])
+    except FadesError as e:
+        app.logger.error("fades error %s %s %s", e.status, e.error, e.request_id)
+        return "Sign-in failed", 502
+    session["user"] = {"id": user["sub"], "username": user["preferred_username"]}
+    return redirect("/")</pre>
+</section>
+
+<section class="fd-card" id="sdk-curl" data-k="curl command line terminal test http raw basic auth">
+  <h2>cURL</h2>
+  <p>Raw HTTP for testing from a terminal. Replace the placeholder values.</p>
+  <h3>Exchange a code</h3>
+  <pre data-lang="sh" data-label="cURL">curl -X POST https://api.fades.lol/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "authorization_code",
+    "client_id": "fades_a1B2c3D4e5F6g7H8",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "code": "CODE_FROM_REDIRECT",
+    "redirect_uri": "https://example.com/auth/callback",
+    "code_verifier": "YOUR_PKCE_VERIFIER"
+  }'</pre>
+  <h3>Same call with HTTP Basic authentication</h3>
+  <pre data-lang="sh" data-label="cURL">curl -X POST https://api.fades.lol/oauth/token \
+  -u "fades_a1B2c3D4e5F6g7H8:YOUR_CLIENT_SECRET" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "authorization_code",
+    "code": "CODE_FROM_REDIRECT",
+    "redirect_uri": "https://example.com/auth/callback",
+    "code_verifier": "YOUR_PKCE_VERIFIER"
+  }'</pre>
+  <h3>Refresh, load profile, sign out</h3>
+  <pre data-lang="sh" data-label="cURL"># Refresh (save the new refresh_token from the response)
+curl -X POST https://api.fades.lol/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{"grant_type":"refresh_token","client_id":"fades_a1B2c3D4e5F6g7H8","client_secret":"YOUR_CLIENT_SECRET","refresh_token":"YOUR_REFRESH_TOKEN"}'
+
+# Profile
+curl https://api.fades.lol/oauth/userinfo -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+# Revoke
+curl -X POST https://api.fades.lol/oauth/revoke \
+  -H "Content-Type: application/json" \
+  -d '{"client_id":"fades_a1B2c3D4e5F6g7H8","client_secret":"YOUR_CLIENT_SECRET","token":"YOUR_REFRESH_TOKEN"}'</pre>
+  <h3>Make a PKCE pair in the terminal</h3>
+  <pre data-lang="sh" data-label="Bash">verifier=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')
+challenge=$(printf '%s' "$verifier" | openssl dgst -sha256 -binary | openssl base64 | tr '+/' '-_' | tr -d '=')
+echo "verifier:  $verifier"
+echo "challenge: $challenge"</pre>
+</section>
+
+<section class="fd-card" id="sdk-verify" data-k="verify id token jose pyjwt signature jwt validation">
+  <h2>Verify an ID token</h2>
+  <p>Do this whenever you rely on the ID token directly. Check the signature against the JWKS, then the issuer, audience, expiry and nonce.</p>
+  <div class="fd-group">
+<pre data-lang="js" data-label="Node (jose)">import { createRemoteJWKSet, jwtVerify } from "jose"; // npm i jose
+
+const JWKS = createRemoteJWKSet(new URL("https://api.fades.lol/oauth/jwks"));
+
+export async function verifyIdToken(idToken, { clientId, nonce }) {
+  const { payload } = await jwtVerify(idToken, JWKS, {
+    issuer: "https://api.fades.lol",
+    audience: clientId,
+    algorithms: ["RS256"],
+  });
+
+  if (nonce &amp;&amp; payload.nonce !== nonce) throw new Error("Nonce mismatch");
+  return payload; // { sub, name, preferred_username, email, ... }
+}</pre>
+<pre data-lang="py" data-label="Python (PyJWT)">import jwt  # pip install "pyjwt[crypto]"
+
+jwks = jwt.PyJWKClient("https://api.fades.lol/oauth/jwks")
+
+def verify_id_token(id_token, client_id, nonce=None):
+    key = jwks.get_signing_key_from_jwt(id_token).key
+    claims = jwt.decode(
+        id_token,
+        key,
+        algorithms=["RS256"],
+        audience=client_id,
+        issuer="https://api.fades.lol",
+    )
+    if nonce and claims.get("nonce") != nonce:
+        raise ValueError("Nonce mismatch")
+    return claims</pre>
+  </div>
+</section>
+
+<!-- =========================================================
+     REFERENCE
+     ========================================================= -->
+
+<section class="fd-card" id="errors" data-k="errors error codes invalid_grant invalid_client server_error http status">
+  <span class="fd-kicker">Reference</span>
+  <h2>Error codes</h2>
+  <p class="fd-lead">Errors come back as JSON with an <code>error</code> field. Token endpoint errors follow the OAuth 2.0 format. <code>error_description</code> is included only on non-production servers, so always switch on <code>error</code> and the HTTP status.</p>
+
+  <h3>Token and revoke endpoints</h3>
+  <div class="fd-table"><table>
+    <tr><th>HTTP</th><th><code>error</code></th><th>What it means and how to fix it</th></tr>
+    <tr><td>401</td><td><code>invalid_client</code></td><td>Client authentication failed: no <code>client_id</code>, unknown app, or wrong <code>client_secret</code>. Check your credentials and that you aren’t sending a secret for a public app (or omitting it for a confidential one).</td></tr>
+    <tr><td>400</td><td><code>invalid_grant</code></td><td>The code or refresh token can’t be used. See the causes below.</td></tr>
+    <tr><td>400</td><td><code>unsupported_grant_type</code></td><td><code>grant_type</code> was missing or not <code>authorization_code</code> / <code>refresh_token</code>.</td></tr>
+    <tr><td>429</td><td>rate limited</td><td>Too many requests. Wait and retry with backoff. See <a href="#limits">Limits</a>.</td></tr>
+    <tr><td>500</td><td><code>server_error</code></td><td>An unexpected problem on Fades’s side. The response includes a <code>request_id</code>. Quote it when reporting the issue. Safe to retry a sign-in after a moment.</td></tr>
+  </table></div>
+
+  <h3>Common causes of <code>invalid_grant</code></h3>
+  <div class="fd-table"><table>
+    <tr><th>Situation</th><th>Fix</th></tr>
+    <tr><td>Code already used, unknown, or from another environment</td><td>Codes are single use. Start sign-in again.</td></tr>
+    <tr><td>Code older than 60 seconds</td><td>Exchange the code immediately after the redirect.</td></tr>
+    <tr><td>Code was issued to a different app</td><td>Use the same <code>client_id</code> for authorize and token.</td></tr>
+    <tr><td><code>redirect_uri</code> differs from the one used in <code>/authorize</code></td><td>Send the identical string, including trailing slash and query.</td></tr>
+    <tr><td>Verifier missing or not 43–128 chars of <code>A–Z a–z 0–9 - . _ ~</code></td><td>Generate it from 32 random bytes, base64url-encoded.</td></tr>
+    <tr><td>Verifier doesn’t match the challenge</td><td>Re-create the pair, and store the <b>same</b> verifier that produced the challenge you sent.</td></tr>
+    <tr><td>Refresh token unknown, already used, expired (30 days) or from another app</td><td>Refresh tokens rotate. Always save the newest one. If it’s gone, send the user through sign-in again.</td></tr>
+  </table></div>
+
+  <h3>Authorize redirect errors</h3>
+  <p>Returned as <code>?error=…&amp;state=…</code> on your redirect URI.</p>
+  <div class="fd-table"><table>
+    <tr><th><code>error</code></th><th>Cause</th></tr>
+    <tr><td><code>invalid_request</code></td><td>Bad or missing PKCE challenge or method, or an oversized <code>nonce</code></td></tr>
+    <tr><td><code>unsupported_response_type</code></td><td><code>response_type</code> isn’t <code>code</code></td></tr>
+    <tr><td><code>invalid_scope</code></td><td>Unknown scope requested</td></tr>
+    <tr><td><code>access_denied</code></td><td>The user declined</td></tr>
+  </table></div>
+  <p>If the app or redirect URI itself is wrong, there is no redirect to your app. The user sees an error page on <code>auth.fades.lol</code> saying <code>Unknown app.</code> or <code>This redirect address isn't registered for the app.</code></p>
+
+  <h3>UserInfo</h3>
+  <div class="fd-table"><table>
+    <tr><th>HTTP</th><th><code>error</code></th><th>Cause</th></tr>
+    <tr><td>401</td><td><code>invalid_token</code></td><td>Token missing, unknown, expired, lacking <code>openid</code>, or the user no longer exists. Refresh and retry once, otherwise sign in again.</td></tr>
+    <tr><td>500</td><td><code>server_error</code></td><td>Unexpected server problem. Retry shortly.</td></tr>
+  </table></div>
+
+  <h3>App management and connected apps</h3>
+  <p>These return <code>{ "success": false, "error": "…" }</code> with a readable message.</p>
+  <div class="fd-table"><table>
+    <tr><th>HTTP</th><th>Message</th><th>Endpoint</th></tr>
+    <tr><td>400</td><td>Give your app a name.</td><td>Create app</td></tr>
+    <tr><td>400</td><td>Add 1 to 10 valid redirect URLs (HTTPS, or localhost for development).</td><td>Create app</td></tr>
+    <tr><td>400</td><td>You can have up to 20 apps.</td><td>Create app</td></tr>
+    <tr><td>404</td><td>App not found.</td><td>Delete app</td></tr>
+    <tr><td>500</td><td>Unable to create the app. / Unable to load your apps. / Unable to delete the app. / Unable to load connected apps. / Unable to disconnect the app.</td><td>Matching endpoint</td></tr>
+  </table></div>
+
+  <h3>HTTP status summary</h3>
+  <div class="fd-table"><table>
+    <tr><th>Status</th><th>Meaning here</th></tr>
+    <tr><td><code>200 / 201</code></td><td>Success (201 when an app is created)</td></tr>
+    <tr><td><code>400</code></td><td>Your request was malformed or the grant is unusable</td></tr>
+    <tr><td><code>401</code></td><td>Client authentication or bearer token failed</td></tr>
+    <tr><td><code>404</code></td><td>Resource not found or not yours</td></tr>
+    <tr><td><code>429</code></td><td>Rate limited</td></tr>
+    <tr><td><code>500</code></td><td>Server problem. Includes a <code>request_id</code> on the token endpoint</td></tr>
+  </table></div>
+</section>
+
+<section class="fd-card" id="limits" data-k="rate limits lifetimes ttl quotas throttle">
+  <h2>Limits &amp; lifetimes</h2>
+  <div class="fd-table"><table>
+    <tr><th>What</th><th>Limit</th></tr>
+    <tr><td><code>/token</code>, <code>/userinfo</code>, <code>/revoke</code></td><td>60 requests per minute</td></tr>
+    <tr><td>Create app, delete app, consent decision</td><td>30 requests per 10 minutes</td></tr>
+    <tr><td>Apps per account</td><td>20</td></tr>
+    <tr><td>Redirect URIs per app</td><td>10</td></tr>
+    <tr><td>App name length</td><td>60 characters</td></tr>
+    <tr><td><code>nonce</code> length</td><td>1024 characters</td></tr>
+    <tr><td>Authorization code lifetime</td><td>60 seconds</td></tr>
+    <tr><td>Access token lifetime</td><td>1 hour</td></tr>
+    <tr><td>Refresh token lifetime</td><td>30 days (rotating)</td></tr>
+    <tr><td>ID token lifetime</td><td>5 minutes</td></tr>
+  </table></div>
+  <p>When you exceed a rate limit the request fails with <code>429</code>. Back off (wait a few seconds, then double the delay each retry) instead of retrying in a tight loop.</p>
+</section>
+
+<section class="fd-card" id="security" data-k="security checklist best practices secrets csrf state pkce https">
+  <h2>Security checklist</h2>
+  <ul>
+    <li><b>Keep the secret server-side.</b> Environment variables only. Never in front-end code, mobile apps or git.</li>
+    <li><b>Always use PKCE</b> with a fresh verifier per sign-in attempt. Never reuse one.</li>
+    <li><b>Verify <code>state</code></b> on the callback, and clear it after use.</li>
+    <li><b>Send a <code>nonce</code></b> and verify it if you use the ID token.</li>
+    <li><b>Use <code>sub</code> as the user key</b>, not the email or username, which can change.</li>
+    <li><b>Check <code>email_verified</code></b> before trusting an email address for account linking.</li>
+    <li><b>Store refresh tokens like passwords</b> (encrypted, server-side) and replace them on every refresh.</li>
+    <li><b>Request only the scopes you need.</b> Users see them on the consent screen.</li>
+    <li><b>Revoke on sign-out</b> and when deleting an account.</li>
+    <li><b>Don’t log tokens, codes, verifiers or secrets.</b> Log the <code>request_id</code> instead.</li>
+    <li><b>Register exact HTTPS redirect URIs.</b> No wildcards. Use <code>localhost</code> only in development.</li>
+  </ul>
+</section>
+
+<section class="fd-card" id="troubleshooting" data-k="troubleshooting problems fix debug help redirect nothing happens 500">
+  <h2>Troubleshooting</h2>
+  <h3>Sign-in lands on an error page at auth.fades.lol</h3>
+  <p>Either the <code>client_id</code> is wrong, or the <code>redirect_uri</code> isn’t an exact match for one registered on the app. Compare them character by character (scheme, host, port, path, trailing slash).</p>
+  <h3><code>invalid_grant</code> right after a successful redirect</h3>
+  <p>Most often the <code>redirect_uri</code> sent to <code>/token</code> differs from the one sent to <code>/authorize</code>, or the verifier you saved isn’t the one that produced the challenge. It can also mean the code was already used (a double-fired callback in React strict mode is a common cause) or took longer than 60 seconds.</p>
+  <h3><code>invalid_client</code></h3>
+  <p>The secret is wrong, or missing for a confidential app. If you rotated or lost it, delete the app and create a new one. Secrets can’t be recovered.</p>
+  <h3><code>server_error</code> with a <code>request_id</code></h3>
+  <p>The problem is on the Fades side, not in your request. Try again in a moment. If it persists, report the <code>request_id</code> so it can be found in the server logs.</p>
+  <h3>Browser console shows CORS errors on <code>/token</code></h3>
+  <p>Call <code>/token</code> from your server or from your own API route (see <a href="#sdk-next">Next.js</a>). Browser-only apps should use a <b>public</b> app and the <a href="#sdk-browser">browser example</a>.</p>
+  <h3>UserInfo returns only <code>sub</code></h3>
+  <p>The user granted only <code>openid</code>. Request <code>openid profile email</code> in <code>scope</code> and have them sign in again.</p>
+</section>
+
+<section class="fd-card" id="changelog" data-k="changelog release notes version history">
+  <h2>Changelog</h2>
+  <div class="fd-table"><table>
+    <tr><th>Date</th><th>Version</th><th>Changes</th></tr>
+    <tr><td>Oct 9, 2026</td><td>v1</td><td>OAuth 2.0 Authorization Code + PKCE, OpenID Connect ID tokens (RS256), JWKS, UserInfo, token revocation, rotating refresh tokens, app management and connected-app endpoints.</td></tr>
+  </table></div>
+</section>
+
+<p class="fd-foot">Fades Identity documentation · Built with <span style="color:var(--accent)">♥</span> for developers</p>
+
+</div>
+</main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- tiny syntax highlighter ---------- */
+  var STR = /"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`/.source;
+  var NUM = /\b\d+(?:\.\d+)?\b/.source;
+  function make(comment, kw) {
+    return new RegExp("(" + comment + ")|(" + STR + ")|\\b(" + kw + ")\\b|(" + NUM + ")", "g");
+  }
+  var LANGS = {
+    js: { c: "\\/\\/.*", kw: "const|let|var|function|async|await|return|if|else|new|class|import|from|export|default|throw|try|catch|for|of|in|null|true|false|undefined|typeof|this|static|delete" },
+    py: { c: "#.*", kw: "def|return|import|from|if|else|elif|raise|class|None|True|False|with|as|in|not|and|or|try|except|for|self|pass" },
+    sh: { c: "#.*", kw: "curl|echo|export|printf" },
+    json: { c: "(?!)", kw: "true|false|null" }
+  };
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  function highlight(code, lang) {
+    var L = LANGS[lang];
+    if (!L) return esc(code);
+    var re = make(L.c, L.kw), out = "", last = 0, m;
+    while ((m = re.exec(code))) {
+      if (m[0] === "") { re.lastIndex++; continue; }
+      var cls = m[1] !== undefined ? "c"
+        : m[2] !== undefined ? (lang === "json" && /^\s*:/.test(code.slice(re.lastIndex)) ? "k" : "s")
+        : m[3] !== undefined ? "w" : "n";
+      out += esc(code.slice(last, m.index)) + '<span class="t-' + cls + '">' + esc(m[0]) + "</span>";
+      last = re.lastIndex;
+    }
+    return out + esc(code.slice(last));
+  }
+
+  /* ---------- code boxes + synced language tabs ---------- */
+  var boxes = [];
+  var pref = null;
+  try { pref = localStorage.getItem("fd-lang"); } catch (e) {}
+
+  function makeBox(pres, anchor) {
+    var box = document.createElement("div");
+    box.className = "fd-codebox";
+    var bar = document.createElement("div");
+    bar.className = "fd-codebar";
+    var tabs = document.createElement("div");
+    tabs.className = "fd-tabs";
+    var copy = document.createElement("button");
+    copy.type = "button";
+    copy.className = "fd-copy";
+    copy.textContent = "Copy";
+    bar.appendChild(tabs);
+    bar.appendChild(copy);
+    anchor.replaceWith(box);
+    box.appendChild(bar);
+
+    var entries = [];
+    pres.forEach(function (pre) {
+      var raw = pre.textContent.replace(/\n$/, "");
+      pre.innerHTML = highlight(raw, pre.getAttribute("data-lang"));
+      box.appendChild(pre);
+      var label = pre.getAttribute("data-label") || (pre.getAttribute("data-lang") || "code").toUpperCase();
+      var tab = document.createElement(pres.length > 1 ? "button" : "span");
+      if (pres.length > 1) tab.type = "button";
+      tab.textContent = label;
+      tabs.appendChild(tab);
+      entries.push({ label: label, pre: pre, tab: tab });
+    });
+
+    var api = {
+      has: function (label) { return entries.some(function (e) { return e.label === label; }); },
+      show: function (label) {
+        entries.forEach(function (e) {
+          var on = e.label === label;
+          e.pre.classList.toggle("on", on);
+          e.tab.classList.toggle("on", on);
+        });
+      }
+    };
+    entries.forEach(function (e) {
+      if (pres.length > 1) e.tab.addEventListener("click", function () { selectAll(e.label); });
+    });
+
+    copy.addEventListener("click", function () {
+      var visible = box.querySelector("pre.on");
+      if (!visible) return;
+      var done = function () {
+        copy.textContent = "Copied";
+        copy.classList.add("done");
+        setTimeout(function () { copy.textContent = "Copy"; copy.classList.remove("done"); }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(visible.textContent).then(done, function () {});
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = visible.textContent;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); done(); } catch (err) {}
+        ta.remove();
+      }
+    });
+
+    api.show(entries[0].label);
+    if (pref && api.has(pref)) api.show(pref);
+    boxes.push(api);
+  }
+
+  function selectAll(label) {
+    pref = label;
+    try { localStorage.setItem("fd-lang", label); } catch (e) {}
+    boxes.forEach(function (b) { if (b.has(label)) b.show(label); });
+  }
+
+  document.querySelectorAll(".fd-group").forEach(function (g) {
+    makeBox(Array.prototype.slice.call(g.querySelectorAll("pre")), g);
+  });
+  document.querySelectorAll("main pre[data-lang]").forEach(function (pre) {
+    if (!pre.closest(".fd-codebox")) makeBox([pre], pre);
+  });
+
+  /* ---------- sidebar: search ---------- */
+  var nav = document.getElementById("nav");
+  var links = Array.prototype.slice.call(nav.querySelectorAll("a"));
+  var heads = Array.prototype.slice.call(nav.querySelectorAll("h4"));
+  var q = document.getElementById("q");
+
+  function haystack(a) {
+    var sec = document.getElementById(a.getAttribute("href").slice(1));
+    return (a.textContent + " " + (sec ? (sec.getAttribute("data-k") || "") + " " + (sec.querySelector("h2") ? sec.querySelector("h2").textContent : "") : "")).toLowerCase();
+  }
+  var index = links.map(haystack);
+
+  q.addEventListener("input", function () {
+    var term = q.value.trim().toLowerCase();
+    var words = term ? term.split(/\s+/) : [];
+    links.forEach(function (a, i) {
+      var ok = words.every(function (w) { return index[i].indexOf(w) !== -1; });
+      a.classList.toggle("hide", !ok);
+    });
+    heads.forEach(function (h) {
+      var el = h.nextElementSibling, any = false;
+      while (el && el.tagName === "A") { if (!el.classList.contains("hide")) any = true; el = el.nextElementSibling; }
+      h.classList.toggle("hide", !any);
+    });
+  });
+  q.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      var first = links.filter(function (a) { return !a.classList.contains("hide"); })[0];
+      if (first) { first.click(); }
+    }
+    if (e.key === "Escape") { q.value = ""; q.dispatchEvent(new Event("input")); q.blur(); }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && !/input|textarea/i.test(document.activeElement.tagName)) {
+      e.preventDefault();
+      q.focus();
+    }
+  });
+
+  /* ---------- sidebar: mobile drawer ---------- */
+  var side = document.getElementById("side");
+  var burger = document.getElementById("burger");
+  function setOpen(open) {
+    side.classList.toggle("open", open);
+    burger.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  burger.addEventListener("click", function () { setOpen(!side.classList.contains("open")); });
+  nav.addEventListener("click", function (e) { if (e.target.closest("a")) setOpen(false); });
+  document.addEventListener("click", function (e) {
+    if (side.classList.contains("open") && !side.contains(e.target) && e.target !== burger) setOpen(false);
+  });
+
+  /* ---------- scroll spy ---------- */
+  var map = {};
+  links.forEach(function (a) { map[a.getAttribute("href").slice(1)] = a; });
+  var sections = Object.keys(map).map(function (id) { return document.getElementById(id); }).filter(Boolean);
+  var current = null;
+
+  function setActive(id) {
+    if (current === id) return;
+    current = id;
+    links.forEach(function (a) { a.classList.remove("active"); });
+    if (map[id]) {
+      map[id].classList.add("active");
+      var box = nav.getBoundingClientRect(), el = map[id].getBoundingClientRect();
+      if (el.top < box.top + 20 || el.bottom > box.bottom - 20) {
+        nav.scrollTop += el.top - box.top - box.height / 2;
+      }
+    }
+  }
+  var ticking = false;
+  function spy() {
+    ticking = false;
+    var y = window.innerHeight * 0.28, best = sections[0];
+    sections.forEach(function (s) { if (s.getBoundingClientRect().top <= y) best = s; });
+    if (best) setActive(best.id);
+  }
+  window.addEventListener("scroll", function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(spy); }
+  }, { passive: true });
+  spy();
+
+  /* ---------- pointer spotlight ---------- */
+  var raf = 0;
+  window.addEventListener("pointermove", function (e) {
+    if (raf) return;
+    raf = requestAnimationFrame(function () {
+      raf = 0;
+      document.documentElement.style.setProperty("--mx", e.clientX + "px");
+      document.documentElement.style.setProperty("--my", e.clientY + "px");
+    });
+  }, { passive: true });
+})();
+</script>
+</body>
+</html>
